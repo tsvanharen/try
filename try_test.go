@@ -1,6 +1,8 @@
 package try
 
 import (
+	"log"
+	"os"
 	"testing"
 	"time"
 
@@ -9,6 +11,8 @@ import (
 )
 
 func TestTry(t *testing.T) {
+	log := log.New(os.Stdout, "TEST : ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
+
 	f := func(m int) func() error {
 		i := 0
 		return func() error {
@@ -20,31 +24,35 @@ func TestTry(t *testing.T) {
 		}
 	}
 
-	err := Try(f(3), 1*time.Second, 100*time.Millisecond)
+	err := Try(f(3), log, 1*time.Second, 100*time.Millisecond)
 	require.Nil(t, err)
 
-	err = Try(f(50), 1*time.Second, 100*time.Millisecond)
+	err = Try(f(50), log, 1*time.Second, 100*time.Millisecond)
 	require.Equal(t, errTimedOut, err)
 }
 
 func TestFatalTry(t *testing.T) {
+	log := log.New(os.Stdout, "TEST : ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
+
 	f := func() error {
 		return TerminableError(errors.New("wut"))
 	}
 
-	err := Try(f, 5*time.Second, 100*time.Millisecond)
+	err := Try(f, log, 5*time.Second, 100*time.Millisecond)
 	require.Error(t, err)
 	require.IsType(t, terminableErr{}, errors.Cause(err))
 }
 
 func TestFunctionActuallyStops(t *testing.T) {
+	log := log.New(os.Stdout, "TEST : ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
+
 	i := 0
 	f := func() error {
 		i++
 		return errors.New("whoops")
 	}
 
-	err := Try(f, 1*time.Second, 100*time.Millisecond)
+	err := Try(f, log, 1*time.Second, 100*time.Millisecond)
 	currentI := i
 	require.Error(t, err)
 	time.Sleep(1 * time.Second)

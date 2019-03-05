@@ -29,7 +29,7 @@ func (t terminableErr) Error() string {
 // or the timeout duration is exceeded. If the function doesn't run successfully, and there is still
 // time remaining before the timeout, it'll sleep for the interval provided before trying to run the
 // function again.
-func Try(f func() error, timeout, interval time.Duration) error {
+func Try(f func() error, log *log.Logger, timeout, interval time.Duration) error {
 	// This channel will fire after the timeout duration has elapsed.
 	timeoutCh := time.After(timeout)
 
